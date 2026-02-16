@@ -28,41 +28,61 @@ export async function getPriorityWords(userId: string, batchSize = 10) {
     return [];
   }
 
-  const words = await prisma.word.findMany({
-    where: {
-      languageId: user.targetLanguageId,
-      translationsFrom: {
-        some: {
-          translatedWord: {
-            languageId: user.nativeLanguageId
+  const [words, customListItems] = await Promise.all([
+    prisma.word.findMany({
+      where: {
+        languageId: user.targetLanguageId,
+        translationsFrom: {
+          some: {
+            translatedWord: {
+              languageId: user.nativeLanguageId
+            }
           }
         }
-      }
-    },
-    include: {
-      language: true,
-      progress: {
-        where: { userId }
       },
-      translationsFrom: {
-        where: {
-          translatedWord: {
-            languageId: user.nativeLanguageId
-          }
+      include: {
+        language: true,
+        progress: {
+          where: { userId }
         },
-        include: {
-          translatedWord: {
-            include: {
-              language: true
+        translationsFrom: {
+          where: {
+            translatedWord: {
+              languageId: user.nativeLanguageId
+            }
+          },
+          include: {
+            translatedWord: {
+              include: {
+                language: true
+              }
             }
           }
         }
       }
-    }
-  });
+    }),
+    prisma.customListWord.findMany({
+      where: {
+        list: {
+          userId
+        }
+      },
+      select: {
+        wordId: true
+      }
+    })
+  ]);
+
+  const customListWordIds = new Set(customListItems.map((item) => item.wordId));
 
   return words
     .sort((a, b) => {
+      const isCustomA = customListWordIds.has(a.id) ? 0 : 1;
+      const isCustomB = customListWordIds.has(b.id) ? 0 : 1;
+      if (isCustomA !== isCustomB) {
+        return isCustomA - isCustomB;
+      }
+
       const progressA = a.progress[0];
       const progressB = b.progress[0];
 

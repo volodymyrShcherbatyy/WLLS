@@ -6,6 +6,8 @@ const prisma = new PrismaClient();
 async function main() {
   await prisma.wordSentence.deleteMany();
   await prisma.translation.deleteMany();
+  await prisma.customListWord.deleteMany();
+  await prisma.customList.deleteMany();
   await prisma.progress.deleteMany();
   await prisma.testResult.deleteMany();
   await prisma.sentence.deleteMany();
@@ -121,6 +123,22 @@ async function main() {
       { userId: user.id, wordId: findWord("water").id, masteryLevel: 1, lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5) },
       { userId: user.id, wordId: findWord("book").id, masteryLevel: 4, lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 2) }
     ]
+  });
+
+
+  const starterList = await prisma.customList.create({
+    data: {
+      name: "Starter Priority",
+      userId: user.id
+    }
+  });
+
+  await prisma.customListWord.createMany({
+    data: [
+      { listId: starterList.id, wordId: findWord("water").id },
+      { listId: starterList.id, wordId: findWord("sun").id }
+    ],
+    skipDuplicates: true
   });
 
   console.log("Database seeded successfully");
