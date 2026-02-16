@@ -142,6 +142,10 @@ model Progress {
   userId         String
   wordId         String
   masteryLevel   Int       @default(0)
+  interval       Int       @default(1)
+  easeFactor     Float     @default(2.5)
+  repetitions    Int       @default(0)
+  nextReviewAt   DateTime?
   lastReviewedAt DateTime?
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   word           Word      @relation(fields: [wordId], references: [id], onDelete: Cascade)

@@ -22,9 +22,16 @@ export async function GET() {
     }
   });
 
+  const now = new Date();
   const learned = progress.filter((item) => item.masteryLevel > 0);
   const mastered = progress.filter((item) => item.masteryLevel >= 5);
   const inProgress = progress.filter((item) => item.masteryLevel > 0 && item.masteryLevel < 5);
+  const dueToday = progress.filter(
+    (item) => item.nextReviewAt && new Date(item.nextReviewAt).getTime() <= now.getTime()
+  );
+  const upcoming = progress.filter(
+    (item) => item.nextReviewAt && new Date(item.nextReviewAt).getTime() > now.getTime()
+  );
 
-  return NextResponse.json({ learned, mastered, inProgress });
+  return NextResponse.json({ learned, mastered, inProgress, dueToday, upcoming });
 }

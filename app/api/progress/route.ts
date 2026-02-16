@@ -16,7 +16,7 @@ export async function GET() {
         include: { language: true }
       }
     },
-    orderBy: [{ masteryLevel: "asc" }, { lastReviewedAt: "asc" }]
+    orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }, { lastReviewedAt: "asc" }]
   });
 
   return NextResponse.json({ progress });
