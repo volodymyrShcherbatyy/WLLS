@@ -14,6 +14,7 @@ Production-ready MVP built with Next.js App Router, Tailwind CSS, Prisma, Postgr
   - Input test: Translation → Word.
 - Library endpoints and pages for learned/mastered/in-progress words.
 - Basic admin CRUD page for words and translation linking.
+- Custom user word lists that prioritize selected words in learning and test generation.
 
 ## Tech Stack
 
@@ -48,6 +49,8 @@ Required:
 
 ```bash
 npx prisma migrate dev --name init
+# custom lists migration (already included in this repo)
+npx prisma migrate dev --name custom_lists
 ```
 
 ## 4) Seed database
@@ -84,13 +87,19 @@ Open [http://localhost:3000](http://localhost:3000).
 - `POST /api/tests/submit`
 - `GET /api/progress`
 - `GET /api/library`
+- `GET /api/lists`
+- `POST /api/lists`
+- `GET /api/lists/:id`
+- `POST /api/lists/:id/words`
+- `DELETE /api/lists/:id/words/:wordId`
 
 ## Learning Algorithm
 
 Word selection priority (`lib/learning.ts`):
-1. Lowest `masteryLevel`
-2. Never reviewed (`lastReviewedAt` is null)
-3. Oldest `lastReviewedAt`
+1. Words in user custom lists
+2. Lowest `masteryLevel`
+3. Never reviewed (`lastReviewedAt` is null)
+4. Oldest `lastReviewedAt`
 
 Batch size: 10 words.
 
@@ -101,3 +110,17 @@ Batch size: 10 words.
 - `lib/` - auth, DB client, learning logic
 - `prisma/` - schema and seed script
 - `types/` - NextAuth module augmentation
+
+## Custom Lists Usage
+
+1. Open `/lists` and create a list.
+2. Open a list and add words from the global vocabulary pool.
+3. Added words are surfaced first in `/learn` and `/api/tests/generate` because test generation reuses learning priority order.
+
+Example API call:
+
+```bash
+curl -X POST http://localhost:3000/api/lists \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Travel words"}'
+```

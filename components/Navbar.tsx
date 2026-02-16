@@ -17,6 +17,7 @@ export function Navbar() {
         <Link href="/learn">Learn</Link>
         <Link href="/test">Test</Link>
         <Link href="/library">Library</Link>
+        <Link href="/lists">Lists</Link>
         {data.user.isAdmin && <Link href="/admin">Admin</Link>}
       </div>
       <button

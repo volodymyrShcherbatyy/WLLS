@@ -1,0 +1,55 @@
+{
+  "newFiles": [
+    "app/api/lists/route.ts",
+    "app/api/lists/[id]/route.ts",
+    "app/api/lists/[id]/words/route.ts",
+    "app/api/lists/[id]/words/[wordId]/route.ts",
+    "app/(app)/lists/page.tsx",
+    "app/(app)/lists/[id]/page.tsx",
+    "components/CustomListCard.tsx",
+    "components/AddWordToListModal.tsx",
+    "prisma/migrations/20260217000000_custom_lists/migration.sql",
+    "extension_manifest.json"
+  ],
+  "modifiedFiles": [
+    "prisma/schema.prisma",
+    "prisma/seed.ts",
+    "lib/learning.ts",
+    "components/Navbar.tsx",
+    "middleware.ts",
+    "README.md"
+  ],
+  "prismaChanges": {
+    "addedModels": [
+      "CustomList",
+      "CustomListWord"
+    ],
+    "addedRelations": [
+      "User.customLists -> CustomList.user",
+      "CustomList.listWords -> CustomListWord.list",
+      "Word.customListWords -> CustomListWord.word"
+    ],
+    "migrationPath": "prisma/migrations/20260217000000_custom_lists/migration.sql"
+  },
+  "apiRoutesAdded": [
+    "GET /api/lists",
+    "POST /api/lists",
+    "GET /api/lists/[id]",
+    "POST /api/lists/[id]/words",
+    "DELETE /api/lists/[id]/words/[wordId]"
+  ],
+  "learningLogicDiffSummary": [
+    "Priority queue now checks if a word belongs to any custom list owned by the user.",
+    "Sorting order is now custom list membership first, then mastery level, then never reviewed, then oldest review date.",
+    "Batch size and function signature remain unchanged."
+  ],
+  "uiRoutesAdded": [
+    "/lists",
+    "/lists/[id]"
+  ],
+  "futureExtensionHooks": [
+    "Support list ordering and pinned lists by adding a `position` field to `CustomList`.",
+    "Allow filtering AddWordToListModal by target language and search query.",
+    "Add list-scoped progress analytics endpoint for adaptive quizzes."
+  ]
+}

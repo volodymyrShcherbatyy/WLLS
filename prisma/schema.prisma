@@ -21,6 +21,7 @@ model User {
   sessions         Session[]
   progress         Progress[]
   testResults      TestResult[]
+  customLists      CustomList[]
   nativeLanguage   Language?   @relation("NativeLanguage", fields: [nativeLanguageId], references: [id])
   targetLanguage   Language?   @relation("TargetLanguage", fields: [targetLanguageId], references: [id])
   createdAt        DateTime    @default(now())
@@ -83,10 +84,30 @@ model Word {
   translationsTo      Translation[]  @relation("TranslationToWord")
   progress            Progress[]
   wordSentences       WordSentence[]
+  customListWords     CustomListWord[]
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
   @@unique([languageId, text])
+}
+
+model CustomList {
+  id        String           @id @default(cuid())
+  name      String
+  userId    String
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listWords CustomListWord[]
+}
+
+model CustomListWord {
+  id     String     @id @default(cuid())
+  listId String
+  wordId String
+  list   CustomList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  word   Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, wordId])
 }
 
 model Translation {
