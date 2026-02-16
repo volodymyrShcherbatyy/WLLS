@@ -1,0 +1,115 @@
+{
+  "fileTree": [
+    ".env.example",
+    ".eslintrc.json",
+    ".gitignore",
+    ".gitkeep",
+    "README.md",
+    "app/(app)/admin/page.tsx",
+    "app/(app)/dashboard/page.tsx",
+    "app/(app)/layout.tsx",
+    "app/(app)/learn/page.tsx",
+    "app/(app)/library/page.tsx",
+    "app/(app)/test/page.tsx",
+    "app/(auth)/login/page.tsx",
+    "app/(auth)/register/page.tsx",
+    "app/api/auth/[...nextauth]/route.ts",
+    "app/api/auth/register/route.ts",
+    "app/api/languages/route.ts",
+    "app/api/library/route.ts",
+    "app/api/progress/route.ts",
+    "app/api/tests/generate/route.ts",
+    "app/api/tests/submit/route.ts",
+    "app/api/words/route.ts",
+    "app/globals.css",
+    "app/layout.tsx",
+    "app/page.tsx",
+    "components/ImageWordCard.tsx",
+    "components/InputTest.tsx",
+    "components/MasteryBadge.tsx",
+    "components/MultipleChoiceTest.tsx",
+    "components/Navbar.tsx",
+    "components/ProgressBar.tsx",
+    "components/Providers.tsx",
+    "components/WordCard.tsx",
+    "lib/auth.ts",
+    "lib/learning.ts",
+    "lib/prisma.ts",
+    "middleware.ts",
+    "next-env.d.ts",
+    "next.config.ts",
+    "package.json",
+    "postcss.config.js",
+    "prisma/schema.prisma",
+    "prisma/seed.ts",
+    "tailwind.config.ts",
+    "tsconfig.json",
+    "types/next-auth.d.ts"
+  ],
+  "namingConventions": {
+    "apiRoutes": "REST-style route handlers under app/api/<resource>/route.ts with kebab-free, lowercase segment naming.",
+    "components": "PascalCase component files under /components with one primary component export per file.",
+    "prismaModels": "PascalCase singular model names (User, Word, Progress) with camelCase scalar fields and explicit relation names where needed."
+  },
+  "databaseSchemaSummary": {
+    "tables": [
+      "User",
+      "Account",
+      "Session",
+      "VerificationToken",
+      "Language",
+      "Word",
+      "Translation",
+      "Sentence",
+      "WordSentence",
+      "Progress",
+      "TestResult"
+    ],
+    "relations": [
+      "User belongs to native and target Language.",
+      "Language has many Word and Sentence records.",
+      "Word links bidirectionally through Translation.",
+      "Word and Sentence have many-to-many via WordSentence.",
+      "User + Word map to Progress (unique userId_wordId).",
+      "User has many TestResult records.",
+      "NextAuth models Account/Session/VerificationToken integrate authentication persistence."
+    ]
+  },
+  "authFlowDescription": {
+    "provider": "NextAuth Credentials provider",
+    "registration": "POST /api/auth/register hashes password with bcryptjs and stores user with selected languages.",
+    "login": "Credentials authorize() loads user by email and compares passwordHash.",
+    "session": "JWT strategy stores user id, admin role, native/target language IDs in token and session callbacks.",
+    "protection": "Middleware protects /dashboard, /learn, /test, /library and checks admin token for /admin."
+  },
+  "learningAlgorithmLogic": {
+    "source": "lib/learning.ts#getPriorityWords",
+    "priorityOrder": [
+      "Lower masteryLevel first",
+      "Never reviewed first (null lastReviewedAt)",
+      "Older lastReviewedAt first"
+    ],
+    "batchSize": 10
+  },
+  "expansionPoints": {
+    "newTestTypes": "Add new generator/submit strategy branches in app/api/tests/* and corresponding reusable components.",
+    "aiGeneration": "Introduce modular services in /lib (e.g. lib/ai.ts) to generate words/sentences and write through Prisma models.",
+    "customWordLists": "Add list/listItem models and list-scoped fetching in /api/words and /learn selection logic.",
+    "spacedRepetition": "Extend Progress with interval/ease fields and replace sort logic in lib/learning.ts with SRS scheduling.",
+    "adminConfigurableTests": "Add TestConfig model and use it in /api/tests/generate for adaptive settings."
+  },
+  "environmentVariables": [
+    {
+      "name": "DATABASE_URL",
+      "purpose": "PostgreSQL connection string for Prisma datasource."
+    },
+    {
+      "name": "NEXTAUTH_URL",
+      "purpose": "Canonical app URL for NextAuth callbacks and redirects."
+    },
+    {
+      "name": "NEXTAUTH_SECRET",
+      "purpose": "JWT/session encryption secret for NextAuth."
+    }
+  ]
+}
