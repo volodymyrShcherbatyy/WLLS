@@ -1,0 +1,85 @@
+{
+  "feature": "spaced_repetition_system",
+  "filesModified": [
+    "prisma/schema.prisma",
+    "prisma/seed.ts",
+    "prisma/migrations/20260217010000_add_srs_fields/migration.sql",
+    "lib/learning.ts",
+    "app/api/tests/submit/route.ts",
+    "app/api/library/route.ts",
+    "app/api/progress/route.ts",
+    "app/(app)/library/page.tsx",
+    "components/ProgressBar.tsx",
+    "components/MasteryBadge.tsx",
+    "components/WordCard.tsx",
+    "components/SRSBadge.tsx",
+    "README.md"
+  ],
+  "prismaChanges": {
+    "model": "Progress",
+    "addedFields": [
+      "interval Int @default(1)",
+      "easeFactor Float @default(2.5)",
+      "repetitions Int @default(0)",
+      "nextReviewAt DateTime?"
+    ],
+    "compatibilityRetained": [
+      "masteryLevel",
+      "lastReviewedAt"
+    ]
+  },
+  "learningLogicDiff": {
+    "batchSize": 10,
+    "newPriority": [
+      "custom list words",
+      "due words by nextReviewAt <= now",
+      "new words without progress",
+      "fallback by lower mastery and older scheduled/review dates"
+    ]
+  },
+  "apiUpdates": {
+    "route": "POST /api/tests/submit",
+    "srs": "SM-2 Lite update performed in transaction",
+    "qualityMapping": {
+      "correct": 5,
+      "wrong": 2
+    },
+    "responseFields": [
+      "score",
+      "masteryLevel",
+      "interval",
+      "easeFactor",
+      "repetitions",
+      "nextReviewAt"
+    ]
+  },
+  "uiUpdates": {
+    "componentsUpdated": [
+      "ProgressBar",
+      "MasteryBadge",
+      "WordCard"
+    ],
+    "componentsAdded": [
+      "SRSBadge"
+    ],
+    "libraryPage": [
+      "due today count",
+      "upcoming count",
+      "mastered count",
+      "card-level interval and next review date"
+    ]
+  },
+  "migrationNotes": {
+    "command": "npx prisma migrate dev --name add_srs_fields",
+    "notes": [
+      "new defaults guarantee backward compatibility for existing users",
+      "existing records without SRS values are initialized via defaults and first-review logic"
+    ]
+  },
+  "futureSrsExtensions": [
+    "per-user difficulty scaling coefficients",
+    "ai-based quality and difficulty estimation",
+    "review reminders via notifications/email",
+    "calendar-based review planning and workload balancing"
+  ]
+}

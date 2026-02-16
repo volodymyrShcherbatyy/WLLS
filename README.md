@@ -51,6 +51,8 @@ Required:
 npx prisma migrate dev --name init
 # custom lists migration (already included in this repo)
 npx prisma migrate dev --name custom_lists
+# spaced repetition fields migration
+npx prisma migrate dev --name add_srs_fields
 ```
 
 ## 4) Seed database
@@ -96,12 +98,31 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Learning Algorithm
 
 Word selection priority (`lib/learning.ts`):
-1. Words in user custom lists
-2. Lowest `masteryLevel`
-3. Never reviewed (`lastReviewedAt` is null)
-4. Oldest `lastReviewedAt`
+1. words in custom lists
+2. words due for review (`nextReviewAt <= now`)
+3. unseen/new words
+4. fallback low mastery and older scheduling dates
 
 Batch size: 10 words.
+
+## Spaced Repetition System
+
+The platform now uses an SM-2 Lite scheduler on each test submission.
+
+- Correct answers map to quality `5`, wrong answers map to quality `2`.
+- If quality is below `3`, repetitions are reset to `0` and interval to `1` day.
+- If quality is `3` or higher:
+  - first successful repetition → interval `1` day
+  - second successful repetition → interval `6` days
+  - later repetitions → interval multiplied by ease factor (rounded)
+- Ease factor is updated every review and clamped to a minimum of `1.3`.
+- `nextReviewAt` is set to `now + interval days` and used by learning priority and library views.
+
+Learning priority now follows:
+1. words in custom lists
+2. words due for review (`nextReviewAt <= now`)
+3. unseen/new words
+4. fallback low mastery and older scheduling dates
 
 ## Project Structure
 

@@ -119,9 +119,9 @@ async function main() {
 
   await prisma.progress.createMany({
     data: [
-      { userId: user.id, wordId: findWord("apple").id, masteryLevel: 3, lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-      { userId: user.id, wordId: findWord("water").id, masteryLevel: 1, lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5) },
-      { userId: user.id, wordId: findWord("book").id, masteryLevel: 4, lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 2) }
+      { userId: user.id, wordId: findWord("apple").id, masteryLevel: 3, interval: 6, easeFactor: 2.5, repetitions: 2, nextReviewAt: new Date(Date.now() - 1000 * 60 * 60 * 24), lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 24) },
+      { userId: user.id, wordId: findWord("water").id, masteryLevel: 1, interval: 1, easeFactor: 2.3, repetitions: 0, nextReviewAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5) },
+      { userId: user.id, wordId: findWord("book").id, masteryLevel: 4, interval: 10, easeFactor: 2.6, repetitions: 3, nextReviewAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 9), lastReviewedAt: new Date(Date.now() - 1000 * 60 * 60 * 2) }
     ]
   });
 

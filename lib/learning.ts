@@ -73,6 +73,7 @@ export async function getPriorityWords(userId: string, batchSize = 10) {
     })
   ]);
 
+  const now = Date.now();
   const customListWordIds = new Set(customListItems.map((item) => item.wordId));
 
   return words
@@ -86,22 +87,36 @@ export async function getPriorityWords(userId: string, batchSize = 10) {
       const progressA = a.progress[0];
       const progressB = b.progress[0];
 
+      const dueA = progressA?.nextReviewAt && new Date(progressA.nextReviewAt).getTime() <= now ? 0 : 1;
+      const dueB = progressB?.nextReviewAt && new Date(progressB.nextReviewAt).getTime() <= now ? 0 : 1;
+      if (dueA !== dueB) {
+        return dueA - dueB;
+      }
+
+      const isNewA = progressA ? 1 : 0;
+      const isNewB = progressB ? 1 : 0;
+      if (isNewA !== isNewB) {
+        return isNewA - isNewB;
+      }
+
       const masteryA = progressA?.masteryLevel ?? 0;
       const masteryB = progressB?.masteryLevel ?? 0;
       if (masteryA !== masteryB) {
         return masteryA - masteryB;
       }
 
-      const neverReviewedA = progressA?.lastReviewedAt ? 1 : 0;
-      const neverReviewedB = progressB?.lastReviewedAt ? 1 : 0;
-      if (neverReviewedA !== neverReviewedB) {
-        return neverReviewedA - neverReviewedB;
-      }
+      const reviewDateA = progressA?.nextReviewAt
+        ? new Date(progressA.nextReviewAt).getTime()
+        : progressA?.lastReviewedAt
+          ? new Date(progressA.lastReviewedAt).getTime()
+          : 0;
+      const reviewDateB = progressB?.nextReviewAt
+        ? new Date(progressB.nextReviewAt).getTime()
+        : progressB?.lastReviewedAt
+          ? new Date(progressB.lastReviewedAt).getTime()
+          : 0;
 
-      const reviewedAtA = progressA?.lastReviewedAt ? new Date(progressA.lastReviewedAt).getTime() : 0;
-      const reviewedAtB = progressB?.lastReviewedAt ? new Date(progressB.lastReviewedAt).getTime() : 0;
-
-      return reviewedAtA - reviewedAtB;
+      return reviewDateA - reviewDateB;
     })
     .slice(0, batchSize);
 }
