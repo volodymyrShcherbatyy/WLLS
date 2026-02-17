@@ -27,11 +27,11 @@ export function Navbar() {
       </div>
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
         <div className="flex items-center gap-3 text-sm text-slate-700">
-          <span className="font-semibold">
-            Hello, {data.user.name || "Learner"}
-          </span>
           <span className="text-xs text-slate-500">
             {nativeCode} / {targetCode}
+          </span>
+          <span className="font-semibold">
+            Hello, {data.user.name || "Learner"}
           </span>
         </div>
         <button
