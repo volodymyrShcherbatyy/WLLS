@@ -15,11 +15,7 @@ export function Navbar() {
 
   return (
     <nav className="mb-8 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm md:flex-row md:items-center md:justify-between">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-6">
-        <div className="flex flex-col text-sm text-slate-700">
-          <span className="font-semibold">Hello, {data.user.name || "Learner"}</span>
-          <span className="text-xs text-slate-500">{nativeCode} / {targetCode}</span>
-        </div>
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-6">        
         <div className="flex flex-wrap gap-4 text-sm font-medium">
           <Link href="/dashboard">Dashboard</Link>
           <Link href="/learn">Learn</Link>
@@ -27,6 +23,10 @@ export function Navbar() {
           <Link href="/library">Library</Link>
           <Link href="/lists">Lists</Link>
           {data.user.isAdmin && <Link href="/admin">Admin</Link>}
+        </div>
+        <div className="flex flex-col text-sm text-slate-700">
+          <span className="font-semibold">Hello, {data.user.name || "Learner"}</span>
+          <span className="text-xs text-slate-500">{nativeCode} / {targetCode}</span>
         </div>
       </div>
       <button
