@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { getAuthSession } from "@/lib/auth";
@@ -14,18 +15,46 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const lists = await prisma.customList.findMany({
-    where: { userId: session.user.id },
-    include: {
-      _count: {
-        select: {
-          listWords: true,
-          userWords: true
+  let lists;
+
+  try {
+    lists = await prisma.customList.findMany({
+      where: { userId: session.user.id },
+      include: {
+        _count: {
+          select: {
+            listWords: true,
+            userWords: true
+          }
         }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+  } catch (error) {
+    if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2021") {
+      throw error;
+    }
+
+    const fallbackLists = await prisma.customList.findMany({
+      where: { userId: session.user.id },
+      include: {
+        _count: {
+          select: {
+            listWords: true
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    lists = fallbackLists.map((list) => ({
+      ...list,
+      _count: {
+        ...list._count,
+        userWords: 0
       }
-    },
-    orderBy: { createdAt: "desc" }
-  });
+    }));
+  }
 
   return NextResponse.json({ lists });
 }
