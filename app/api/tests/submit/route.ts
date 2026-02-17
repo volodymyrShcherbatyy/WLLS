@@ -3,14 +3,13 @@ import { z } from "zod";
 
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { computeSrsReview } from "@/lib/srs";
 
 const submitSchema = z.object({
   wordId: z.string().min(1),
   isCorrect: z.boolean()
 });
 
-const MIN_EASE_FACTOR = 1.3;
-const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
 export async function POST(request: Request) {
   const session = await getAuthSession();
@@ -25,7 +24,6 @@ export async function POST(request: Request) {
   }
 
   const now = new Date();
-  const quality = parsed.data.isCorrect ? 5 : 2;
 
   const progress = await prisma.$transaction(async (tx) => {
     const currentProgress = await tx.progress.upsert({
@@ -47,33 +45,13 @@ export async function POST(request: Request) {
       }
     });
 
-    const prevRepetitions = currentProgress.repetitions ?? 0;
-    const prevInterval = currentProgress.interval ?? 1;
-    const prevEaseFactor = currentProgress.easeFactor ?? 2.5;
-
-    let repetitions = prevRepetitions;
-    let interval = prevInterval;
-
-    if (quality < 3) {
-      repetitions = 0;
-      interval = 1;
-    } else {
-      if (prevRepetitions === 0) {
-        interval = 1;
-      } else if (prevRepetitions === 1) {
-        interval = 6;
-      } else {
-        interval = Math.max(1, Math.round(prevInterval * prevEaseFactor));
-      }
-      repetitions = prevRepetitions + 1;
-    }
-
-    const easeFactor = Math.max(
-      MIN_EASE_FACTOR,
-      prevEaseFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
-    );
-
-    const nextReviewAt = new Date(now.getTime() + interval * DAY_IN_MS);
+    const srsReview = computeSrsReview({
+      isCorrect: parsed.data.isCorrect,
+      previousRepetitions: currentProgress.repetitions,
+      previousInterval: currentProgress.interval,
+      previousEaseFactor: currentProgress.easeFactor,
+      now
+    });
 
     const masteryLevel = Math.min(
       5,
@@ -85,10 +63,10 @@ export async function POST(request: Request) {
       data: {
         masteryLevel,
         lastReviewedAt: now,
-        interval,
-        easeFactor,
-        repetitions,
-        nextReviewAt
+        interval: srsReview.interval,
+        easeFactor: srsReview.easeFactor,
+        repetitions: srsReview.repetitions,
+        nextReviewAt: srsReview.nextReviewAt
       }
     });
 
