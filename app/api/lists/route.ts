@@ -19,7 +19,8 @@ export async function GET() {
     include: {
       _count: {
         select: {
-          listWords: true
+          listWords: true,
+          userWords: true
         }
       }
     },

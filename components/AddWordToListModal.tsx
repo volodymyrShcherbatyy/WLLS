@@ -1,39 +1,40 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-type WordOption = {
-  id: string;
+interface AddWordPayload {
   text: string;
-  language: {
-    name: string;
-  };
-};
-
-interface AddWordToListModalProps {
-  words: WordOption[];
-  existingWordIds: string[];
-  onAdd: (wordId: string) => Promise<void>;
+  translation: string;
+  imageUrl?: string;
 }
 
-export function AddWordToListModal({ words, existingWordIds, onAdd }: AddWordToListModalProps) {
+interface AddWordToListModalProps {
+  onAdd: (payload: AddWordPayload) => Promise<void>;
+}
+
+export function AddWordToListModal({ onAdd }: AddWordToListModalProps) {
   const [open, setOpen] = useState(false);
-  const [selectedWordId, setSelectedWordId] = useState("");
+  const [text, setText] = useState("");
+  const [translation, setTranslation] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const availableWords = useMemo(
-    () => words.filter((word) => !existingWordIds.includes(word.id)),
-    [existingWordIds, words]
-  );
+  const isDisabled = !text.trim() || !translation.trim() || isSaving;
 
   const handleAdd = async () => {
-    if (!selectedWordId) {
+    if (!text.trim() || !translation.trim()) {
       return;
     }
 
     setIsSaving(true);
-    await onAdd(selectedWordId);
-    setSelectedWordId("");
+    await onAdd({
+      text: text.trim(),
+      translation: translation.trim(),
+      imageUrl: imageUrl.trim() || undefined
+    });
+    setText("");
+    setTranslation("");
+    setImageUrl("");
     setIsSaving(false);
     setOpen(false);
   };
@@ -47,18 +48,24 @@ export function AddWordToListModal({ words, existingWordIds, onAdd }: AddWordToL
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-lg bg-white p-4 shadow-xl">
             <h3 className="text-lg font-semibold">Add word to list</h3>
-            <select
-              value={selectedWordId}
-              onChange={(event) => setSelectedWordId(event.target.value)}
+            <input
+              value={text}
+              onChange={(event) => setText(event.target.value)}
               className="mt-3 w-full rounded border border-slate-300 px-3 py-2"
-            >
-              <option value="">Select word</option>
-              {availableWords.map((word) => (
-                <option key={word.id} value={word.id}>
-                  {word.text} ({word.language.name})
-                </option>
-              ))}
-            </select>
+              placeholder="Word"
+            />
+            <input
+              value={translation}
+              onChange={(event) => setTranslation(event.target.value)}
+              className="mt-3 w-full rounded border border-slate-300 px-3 py-2"
+              placeholder="Translation"
+            />
+            <input
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              className="mt-3 w-full rounded border border-slate-300 px-3 py-2"
+              placeholder="Image URL (optional)"
+            />
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setOpen(false)} className="rounded border border-slate-300 px-3 py-2">
                 Cancel
@@ -66,7 +73,7 @@ export function AddWordToListModal({ words, existingWordIds, onAdd }: AddWordToL
               <button
                 type="button"
                 onClick={handleAdd}
-                disabled={!selectedWordId || isSaving}
+                disabled={isDisabled}
                 className="rounded bg-brand px-3 py-2 text-white disabled:opacity-50"
               >
                 {isSaving ? "Adding..." : "Add"}

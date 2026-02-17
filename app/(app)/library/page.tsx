@@ -6,20 +6,63 @@ export default async function LibraryPage() {
   const session = await getAuthSession();
   const now = new Date();
 
-  const items = await prisma.progress.findMany({
-    where: { userId: session!.user.id },
-    include: {
-      word: {
-        include: {
-          translationsFrom: {
-            include: {
-              translatedWord: true
+  const [globalItems, userItems] = await Promise.all([
+    prisma.progress.findMany({
+      where: { userId: session!.user.id },
+      include: {
+        word: {
+          include: {
+            translationsFrom: {
+              include: {
+                translatedWord: true
+              }
             }
           }
         }
-      }
-    },
-    orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }]
+      },
+      orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }]
+    }),
+    prisma.userWordProgress.findMany({
+      where: { userId: session!.user.id },
+      include: {
+        userWord: {
+          include: {
+            translations: {
+              where: {
+                translatedLanguageId: session!.user.nativeLanguageId ?? undefined
+              }
+            }
+          }
+        }
+      },
+      orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }]
+    })
+  ]);
+
+  const items = [
+    ...globalItems.map((item) => ({
+      id: `global-${item.id}`,
+      masteryLevel: item.masteryLevel,
+      nextReviewAt: item.nextReviewAt,
+      word: item.word.text,
+      translation: item.word.translationsFrom[0]?.translatedWord.text ?? "-"
+    })),
+    ...userItems.map((item) => ({
+      id: `user-${item.id}`,
+      masteryLevel: item.masteryLevel,
+      nextReviewAt: item.nextReviewAt,
+      word: item.userWord.text,
+      translation: item.userWord.translations[0]?.translatedText ?? "-"
+    }))
+  ].sort((a, b) => {
+    const aTime = a.nextReviewAt ? new Date(a.nextReviewAt).getTime() : Number.MAX_SAFE_INTEGER;
+    const bTime = b.nextReviewAt ? new Date(b.nextReviewAt).getTime() : Number.MAX_SAFE_INTEGER;
+
+    if (aTime !== bTime) {
+      return aTime - bTime;
+    }
+
+    return a.masteryLevel - b.masteryLevel;
   });
 
   const dueToday = items.filter(
@@ -47,16 +90,9 @@ export default async function LibraryPage() {
           <p className="text-2xl font-semibold text-slate-900">{mastered}</p>
         </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
-          <WordCard
-            key={item.id}
-            word={item.word.text}
-            translation={item.word.translationsFrom[0]?.translatedWord.text ?? "-"}
-            masteryLevel={item.masteryLevel}
-            interval={item.interval}
-            nextReviewAt={item.nextReviewAt}
-          />
+          <WordCard key={item.id} word={item.word} translation={item.translation} masteryLevel={item.masteryLevel} />
         ))}
       </div>
     </section>

@@ -19,7 +19,6 @@ export async function GET(_request: Request, { params }: { params: { id: string 
         include: {
           word: {
             include: {
-              language: true,
               translationsFrom: {
                 where: {
                   translatedWord: {
@@ -38,6 +37,24 @@ export async function GET(_request: Request, { params }: { params: { id: string 
             text: "asc"
           }
         }
+      },
+      userWords: {
+        include: {
+          userWord: {
+            include: {
+              translations: {
+                where: {
+                  translatedLanguageId: session.user.nativeLanguageId ?? undefined
+                }
+              }
+            }
+          }
+        },
+        orderBy: {
+          userWord: {
+            text: "asc"
+          }
+        }
       }
     }
   });
@@ -46,5 +63,28 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     return NextResponse.json({ error: "List not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ list });
+  const items = [
+    ...list.listWords.map((item) => ({
+      id: item.id,
+      source: "global" as const,
+      wordId: item.word.id,
+      text: item.word.text,
+      translation: item.word.translationsFrom[0]?.translatedWord.text ?? "-"
+    })),
+    ...list.userWords.map((item) => ({
+      id: item.id,
+      source: "user" as const,
+      wordId: item.userWord.id,
+      text: item.userWord.text,
+      translation: item.userWord.translations[0]?.translatedText ?? "-"
+    }))
+  ].sort((a, b) => a.text.localeCompare(b.text));
+
+  return NextResponse.json({
+    list: {
+      id: list.id,
+      name: list.name,
+      items
+    }
+  });
 }

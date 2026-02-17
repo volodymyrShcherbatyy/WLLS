@@ -7,9 +7,9 @@ import { computeSrsReview } from "@/lib/srs";
 
 const submitSchema = z.object({
   wordId: z.string().min(1),
+  source: z.enum(["global", "user"]).default("global"),
   isCorrect: z.boolean()
 });
-
 
 export async function POST(request: Request) {
   const session = await getAuthSession();
@@ -26,6 +26,58 @@ export async function POST(request: Request) {
   const now = new Date();
 
   const progress = await prisma.$transaction(async (tx) => {
+    if (parsed.data.source === "user") {
+      const currentProgress = await tx.userWordProgress.upsert({
+        where: {
+          userId_userWordId: {
+            userId: session.user.id,
+            userWordId: parsed.data.wordId
+          }
+        },
+        update: {},
+        create: {
+          userId: session.user.id,
+          userWordId: parsed.data.wordId,
+          masteryLevel: 0,
+          lastReviewedAt: now,
+          interval: 1,
+          easeFactor: 2.5,
+          repetitions: 0
+        }
+      });
+
+      const srsReview = computeSrsReview({
+        isCorrect: parsed.data.isCorrect,
+        previousRepetitions: currentProgress.repetitions,
+        previousInterval: currentProgress.interval,
+        previousEaseFactor: currentProgress.easeFactor,
+        now
+      });
+
+      const masteryLevel = Math.min(5, Math.max(0, currentProgress.masteryLevel + (parsed.data.isCorrect ? 1 : -1)));
+
+      const updatedProgress = await tx.userWordProgress.update({
+        where: { id: currentProgress.id },
+        data: {
+          masteryLevel,
+          lastReviewedAt: now,
+          interval: srsReview.interval,
+          easeFactor: srsReview.easeFactor,
+          repetitions: srsReview.repetitions,
+          nextReviewAt: srsReview.nextReviewAt
+        }
+      });
+
+      await tx.testResult.create({
+        data: {
+          userId: session.user.id,
+          score: parsed.data.isCorrect ? 1 : 0
+        }
+      });
+
+      return updatedProgress;
+    }
+
     const currentProgress = await tx.progress.upsert({
       where: {
         userId_wordId: {
@@ -53,10 +105,7 @@ export async function POST(request: Request) {
       now
     });
 
-    const masteryLevel = Math.min(
-      5,
-      Math.max(0, currentProgress.masteryLevel + (parsed.data.isCorrect ? 1 : -1))
-    );
+    const masteryLevel = Math.min(5, Math.max(0, currentProgress.masteryLevel + (parsed.data.isCorrect ? 1 : -1)));
 
     const updatedProgress = await tx.progress.update({
       where: { id: currentProgress.id },
@@ -70,25 +119,23 @@ export async function POST(request: Request) {
       }
     });
 
-    const score = parsed.data.isCorrect ? 1 : 0;
-
     await tx.testResult.create({
       data: {
         userId: session.user.id,
-        score
+        score: parsed.data.isCorrect ? 1 : 0
       }
     });
 
-    return { updatedProgress, score };
+    return updatedProgress;
   });
 
   return NextResponse.json({
     success: true,
-    score: progress.score,
-    masteryLevel: progress.updatedProgress.masteryLevel,
-    interval: progress.updatedProgress.interval,
-    easeFactor: progress.updatedProgress.easeFactor,
-    repetitions: progress.updatedProgress.repetitions,
-    nextReviewAt: progress.updatedProgress.nextReviewAt
+    score: parsed.data.isCorrect ? 1 : 0,
+    masteryLevel: progress.masteryLevel,
+    interval: progress.interval,
+    easeFactor: progress.easeFactor,
+    repetitions: progress.repetitions,
+    nextReviewAt: progress.nextReviewAt
   });
 }

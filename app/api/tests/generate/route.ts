@@ -23,16 +23,34 @@ export async function GET(request: Request) {
   const translation = selected.translationsFrom[0].translatedWord;
 
   if (type === "mcq") {
-    const distractors = await prisma.word.findMany({
-      where: {
-        languageId: translation.languageId,
-        id: { not: translation.id }
-      },
-      take: 3,
-      orderBy: { createdAt: "desc" }
-    });
+    const [globalDistractors, userDistractors] = await Promise.all([
+      prisma.word.findMany({
+        where: {
+          languageId: translation.languageId,
+          text: { not: translation.text }
+        },
+        take: 6,
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.userWordTranslation.findMany({
+        where: {
+          translatedLanguageId: translation.languageId,
+          translatedText: { not: translation.text },
+          userWord: {
+            userId: session.user.id
+          }
+        },
+        take: 6,
+        orderBy: { id: "desc" }
+      })
+    ]);
 
-    const options = [translation.text, ...distractors.map((d) => d.text)]
+    const distractorPool = [
+      ...globalDistractors.map((item) => item.text),
+      ...userDistractors.map((item) => item.translatedText)
+    ];
+
+    const options = Array.from(new Set([translation.text, ...distractorPool]))
       .sort(() => Math.random() - 0.5)
       .slice(0, 4);
 
@@ -40,6 +58,7 @@ export async function GET(request: Request) {
       test: {
         type: "mcq",
         wordId: selected.id,
+        source: selected.source,
         prompt: selected.text,
         answer: translation.text,
         options
@@ -51,6 +70,7 @@ export async function GET(request: Request) {
     test: {
       type: "input",
       wordId: selected.id,
+      source: selected.source,
       prompt: translation.text,
       answer: selected.text
     }
