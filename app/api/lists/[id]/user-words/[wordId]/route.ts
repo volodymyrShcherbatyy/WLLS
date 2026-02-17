@@ -9,40 +9,65 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const deleted = await prisma.$transaction(async (tx) => {
-    const list = await tx.customList.findFirst({
-      where: {
-        id: params.id,
-        userId: session.user.id
-      },
-      select: { id: true }
-    });
+  const deleted = await prisma
+    .$transaction(async (tx) => {
+      const list = await tx.customList.findFirst({
+        where: {
+          id: params.id,
+          userId: session.user.id
+        },
+        select: { id: true }
+      });
 
-    if (!list) {
-      throw new Error("LIST_NOT_FOUND");
-    }
-
-    const existing = await tx.customListUserWord.findFirst({
-      where: {
-        listId: list.id,
-        userWordId: params.wordId
+      if (!list) {
+        throw new Error("LIST_NOT_FOUND");
       }
+
+      const existing = await tx.customListUserWord.findFirst({
+        where: {
+          listId: list.id,
+          userWordId: params.wordId,
+          userWord: {
+            userId: session.user.id
+          }
+        },
+        select: {
+          id: true,
+          userWordId: true
+        }
+      });
+
+      if (!existing) {
+        return null;
+      }
+
+      await tx.customListUserWord.delete({
+        where: {
+          id: existing.id
+        }
+      });
+
+      await tx.userWordTranslation.deleteMany({
+        where: {
+          userWordId: existing.userWordId
+        }
+      });
+
+      await tx.userWord.delete({
+        where: {
+          id: existing.userWordId
+        }
+      });
+
+      return existing.userWordId;
+    })
+    .catch((error) => {
+      if (error instanceof Error && error.message === "LIST_NOT_FOUND") {
+        return "LIST_NOT_FOUND" as const;
+      }
+
+      throw error;
     });
-
-    if (!existing) {
-      return null;
-    }
-
-    return tx.customListUserWord.delete({
-      where: { id: existing.id }
-    });
-  }).catch((error) => {
-    if (error instanceof Error && error.message === "LIST_NOT_FOUND") {
-      return "LIST_NOT_FOUND" as const;
-    }
-
-    throw error;
-  });
 
   if (deleted === "LIST_NOT_FOUND") {
     return NextResponse.json({ error: "List not found" }, { status: 404 });

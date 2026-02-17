@@ -102,7 +102,7 @@ model CustomList {
   createdAt DateTime             @default(now())
   user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   listWords CustomListWord[]
-  userWords CustomListUserWord[]
+  userWordLinks CustomListUserWord[]
 }
 
 model CustomListWord {

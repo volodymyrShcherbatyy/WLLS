@@ -166,3 +166,11 @@ User-owned vocabulary is stored separately from admin-managed global words.
 - SRS progress for user-owned words is tracked in `UserWordProgress`; global words continue to use `Progress`.
 
 Learning and testing now run against a merged pool of global words and user-owned words, while preserving existing behavior for legacy/global data and APIs.
+
+## Bugfix: UserWord Ownership Fixes
+
+The User-Owned Vocabulary refactor introduced stricter Prisma typing and relation usage for list membership.
+
+- **Delegate naming fixed:** API handlers now use the generated delegates directly (`prisma.userWord`, `prisma.userWordTranslation`, `prisma.customListUserWord`) so Prisma Client methods align with model delegates.
+- **Join-table querying fixed:** custom list user-owned items are fetched via the join relation (`userWordLinks`) instead of querying non-existent direct list-to-user-word fields.
+- **Include/select structure fixed:** list detail routes now include nested join-table payloads with `userWordLinks -> userWord -> translations`, while list counts query `_count.userWordLinks` and preserve backward-compatible response fields for existing UI consumers.
