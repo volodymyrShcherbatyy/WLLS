@@ -1,0 +1,57 @@
+{
+  "filesFixed": [
+    "prisma/schema.prisma",
+    "app/api/lists/route.ts",
+    "app/api/lists/[id]/route.ts",
+    "app/api/lists/[id]/user-words/[wordId]/route.ts",
+    "README.md"
+  ],
+  "delegatesCorrected": [
+    "prisma.userWord",
+    "prisma.userWordTranslation",
+    "prisma.customListUserWord"
+  ],
+  "relationIncludesFixed": {
+    "customListDetail": {
+      "include": {
+        "listWords": {
+          "include": {
+            "word": {
+              "include": {
+                "translationsFrom": {
+                  "include": {
+                    "translatedWord": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "userWordLinks": {
+          "include": {
+            "userWord": {
+              "include": {
+                "translations": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "customListCount": {
+      "_count": {
+        "select": {
+          "listWords": true,
+          "userWordLinks": true
+        }
+      }
+    }
+  },
+  "prismaGenerateStatus": "passed",
+  "migrationStatus": "not_run_no_schema_db_change_relation_field_rename_only",
+  "backwardCompatibilityChecks": [
+    "List detail API still merges global words and user-owned words into a single items array",
+    "List summary API preserves legacy _count.userWords output while sourcing data from _count.userWordLinks",
+    "Learning engine remains unchanged and continues to query both global Word and UserWord pools"
+  ]
+}

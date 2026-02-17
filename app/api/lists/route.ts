@@ -9,13 +9,24 @@ const createListSchema = z.object({
   name: z.string().trim().min(1).max(100)
 });
 
+type ListWithWordCounts = Prisma.CustomListGetPayload<{
+  include: {
+    _count: {
+      select: {
+        listWords: true;
+        userWordLinks: true;
+      };
+    };
+  };
+}>;
+
 export async function GET() {
   const session = await getAuthSession();
   if (!session?.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let lists;
+  let lists: ListWithWordCounts[];
 
   try {
     lists = await prisma.customList.findMany({
@@ -24,7 +35,7 @@ export async function GET() {
         _count: {
           select: {
             listWords: true,
-            userWords: true
+            userWordLinks: true
           }
         }
       },
@@ -51,12 +62,20 @@ export async function GET() {
       ...list,
       _count: {
         ...list._count,
-        userWords: 0
+        userWordLinks: 0
       }
     }));
   }
 
-  return NextResponse.json({ lists });
+  return NextResponse.json({
+    lists: lists.map((list) => ({
+      ...list,
+      _count: {
+        ...list._count,
+        userWords: list._count.userWordLinks
+      }
+    }))
+  });
 }
 
 export async function POST(request: Request) {
