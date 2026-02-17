@@ -1,0 +1,58 @@
+{
+  "newModels": [
+    "UserWord",
+    "UserWordTranslation",
+    "CustomListUserWord",
+    "UserWordProgress"
+  ],
+  "prismaMigration": "prisma/migrations/20260217130000_user_word_ownership_refactor/migration.sql",
+  "apiRoutesAdded": [
+    "POST /api/lists/[id]/user-words",
+    "DELETE /api/lists/[id]/user-words/[wordId]"
+  ],
+  "learningEngineDiff": {
+    "file": "lib/learning.ts",
+    "changes": [
+      "Merged global Word and private UserWord pools",
+      "Preserved custom list > due > new priority ordering",
+      "Added support for source-aware learning items (global/user)",
+      "Mapped UserWordTranslation into unified translationsFrom shape"
+    ]
+  },
+  "testGeneratorUpdates": {
+    "files": [
+      "app/api/tests/generate/route.ts",
+      "app/api/tests/submit/route.ts",
+      "app/(app)/test/page.tsx"
+    ],
+    "changes": [
+      "Generated mixed-source questions from global and user word pool",
+      "Added source field to generated test payload",
+      "Added source-aware SRS write path to Progress and UserWordProgress"
+    ]
+  },
+  "libraryMergeLogic": {
+    "files": [
+      "app/api/library/route.ts",
+      "app/(app)/library/page.tsx"
+    ],
+    "changes": [
+      "Merged global Progress and UserWordProgress",
+      "Unified display records with source, word text, translation, and mastery",
+      "Preserved due/upcoming/mastered metrics"
+    ]
+  },
+  "uiComponentsUpdated": [
+    "app/(app)/library/page.tsx",
+    "components/WordCard.tsx",
+    "components/ProgressBar.tsx",
+    "components/AddWordToListModal.tsx",
+    "app/(app)/lists/[id]/page.tsx"
+  ],
+  "backwardCompatibilityNotes": [
+    "Existing Word, Translation, Progress, and CustomListWord tables are unchanged",
+    "Legacy global-word list APIs remain available",
+    "Learning and testing continue to work for existing global vocabulary",
+    "Admin vocabulary management remains isolated to global Word endpoints"
+  ]
+}

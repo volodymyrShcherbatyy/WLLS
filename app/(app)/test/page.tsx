@@ -8,6 +8,7 @@ import { MultipleChoiceTest } from "@/components/MultipleChoiceTest";
 type TestPayload = {
   type: "mcq" | "input";
   wordId: string;
+  source: "global" | "user";
   prompt: string;
   answer: string;
   options?: string[];
@@ -36,7 +37,7 @@ export default function TestPage() {
     const response = await fetch("/api/tests/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wordId: question.wordId, isCorrect })
+      body: JSON.stringify({ wordId: question.wordId, source: question.source, isCorrect })
     });
 
     const data = await response.json();

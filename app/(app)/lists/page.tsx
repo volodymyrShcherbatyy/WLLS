@@ -9,6 +9,7 @@ type ListItem = {
   name: string;
   _count: {
     listWords: number;
+    userWords: number;
   };
 };
 
@@ -71,7 +72,7 @@ export default function ListsPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {lists.map((list) => (
-          <CustomListCard key={list.id} id={list.id} name={list.name} wordCount={list._count.listWords} />
+          <CustomListCard key={list.id} id={list.id} name={list.name} wordCount={list._count.listWords + list._count.userWords} />
         ))}
       </div>
     </section>
