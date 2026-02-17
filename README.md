@@ -16,6 +16,14 @@ Production-ready MVP built with Next.js App Router, Tailwind CSS, Prisma, Postgr
 - Basic admin CRUD page for words and translation linking.
 - Custom user word lists that prioritize selected words in learning and test generation.
 
+## Functional & UX Refactor
+
+- Navbar now displays learner name and learning language pair (`native / target`).
+- Learn page uses responsive card grid (`1/2/3` columns for mobile/tablet/desktop).
+- Translation line on learn cards is redesigned as a merged horizontal row: `description="word" >>> "translation"`.
+- Multiple choice tests now validate instantly on option click, remove manual submit, and keep `/api/tests/submit` grading flow.
+- Multiple choice feedback colors are immediate: correct answers are green and wrong selections are red while also revealing the correct option.
+
 ## Tech Stack
 
 - Next.js 14 (App Router)

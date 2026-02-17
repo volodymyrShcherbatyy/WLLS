@@ -20,7 +20,13 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({ where: { email: credentials.email } });
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+          include: {
+            nativeLanguage: { select: { code: true } },
+            targetLanguage: { select: { code: true } }
+          }
+        });
         if (!user) {
           return null;
         }
@@ -36,7 +42,9 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           isAdmin: user.isAdmin,
           nativeLanguageId: user.nativeLanguageId,
-          targetLanguageId: user.targetLanguageId
+          targetLanguageId: user.targetLanguageId,
+          nativeLanguageCode: user.nativeLanguage?.code ?? null,
+          targetLanguageCode: user.targetLanguage?.code ?? null
         };
       }
     })
@@ -48,6 +56,8 @@ export const authOptions: NextAuthOptions = {
         token.isAdmin = user.isAdmin;
         token.nativeLanguageId = user.nativeLanguageId;
         token.targetLanguageId = user.targetLanguageId;
+        token.nativeLanguageCode = user.nativeLanguageCode;
+        token.targetLanguageCode = user.targetLanguageCode;
       }
       return token;
     },
@@ -57,6 +67,8 @@ export const authOptions: NextAuthOptions = {
         session.user.isAdmin = token.isAdmin;
         session.user.nativeLanguageId = token.nativeLanguageId;
         session.user.targetLanguageId = token.targetLanguageId;
+        session.user.nativeLanguageCode = token.nativeLanguageCode;
+        session.user.targetLanguageCode = token.targetLanguageCode;
       }
       return session;
     }
