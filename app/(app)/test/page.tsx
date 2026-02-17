@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { InputTest } from "@/components/InputTest";
 import { MultipleChoiceTest } from "@/components/MultipleChoiceTest";
@@ -18,15 +18,15 @@ export default function TestPage() {
   const [question, setQuestion] = useState<TestPayload | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
-  const loadQuestion = async () => {
+  const loadQuestion = useCallback(async () => {
     const response = await fetch(`/api/tests/generate?type=${mode}`);
     const data = await response.json();
     setQuestion(data.test);
-  };
+  }, [mode]);
 
   useEffect(() => {
-    loadQuestion();
-  }, [mode]);
+    void loadQuestion();
+  }, [loadQuestion]);
 
   const handleSubmit = async (isCorrect: boolean) => {
     if (!question) {
@@ -41,6 +41,11 @@ export default function TestPage() {
 
     const data = await response.json();
     setStatus(`Answer ${isCorrect ? "correct" : "wrong"}. Score: ${data.score}`);
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 650);
+    });
+
     await loadQuestion();
   };
 

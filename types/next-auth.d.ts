@@ -7,6 +7,8 @@ declare module "next-auth" {
       isAdmin: boolean;
       nativeLanguageId?: string | null;
       targetLanguageId?: string | null;
+      nativeLanguageCode?: string | null;
+      targetLanguageCode?: string | null;
       name?: string | null;
       email?: string | null;
     };
@@ -16,6 +18,8 @@ declare module "next-auth" {
     isAdmin: boolean;
     nativeLanguageId?: string | null;
     targetLanguageId?: string | null;
+    nativeLanguageCode?: string | null;
+    targetLanguageCode?: string | null;
   }
 }
 
@@ -25,5 +29,7 @@ declare module "next-auth/jwt" {
     isAdmin: boolean;
     nativeLanguageId?: string | null;
     targetLanguageId?: string | null;
+    nativeLanguageCode?: string | null;
+    targetLanguageCode?: string | null;
   }
 }

@@ -9,17 +9,15 @@ export default async function LearnPage() {
   return (
     <section>
       <h1 className="mb-4 text-3xl font-bold">Learn words</h1>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {words.map((word) => (
           <div key={word.id}>
             <ImageWordCard
               text={word.text}
               imageUrl={word.imageUrl}
-              description={`Word ${word.text}`}
+              description="description"
+              translation={word.translationsFrom[0]?.translatedWord.text ?? "-"}
             />
-            <p className="mt-2 text-sm text-slate-600">
-              Translation: {word.translationsFrom[0]?.translatedWord.text ?? "-"}
-            </p>
           </div>
         ))}
       </div>
