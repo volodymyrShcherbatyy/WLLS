@@ -13,6 +13,11 @@ export function MultipleChoiceTest({ prompt, options, correctAnswer, onSubmit }:
   const [selected, setSelected] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
 
+  useEffect(() => {
+    setSelected(null);
+    setIsLocked(false);
+  }, [prompt, options, correctAnswer]);
+
   const handleSelect = async (option: string) => {
     if (isLocked) {
       return;
