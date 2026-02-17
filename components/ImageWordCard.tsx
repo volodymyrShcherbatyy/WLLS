@@ -19,8 +19,6 @@ export function ImageWordCard({ text, imageUrl, description, translation }: Imag
         <h3 className="text-xl font-semibold">{text}</h3>
         {description && translation && (
           <p className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
-            <span>{description}=</span>
-            <span className="font-medium">&quot;{text}&quot;</span>
             <span>&gt;&gt;&gt;</span>
             <span className="font-medium">&quot;{translation}&quot;</span>
           </p>
