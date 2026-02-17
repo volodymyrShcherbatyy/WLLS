@@ -16,14 +16,13 @@ export function ImageWordCard({ text, imageUrl, description, translation }: Imag
         <div className="flex h-48 items-center justify-center bg-slate-100 text-slate-500">No image</div>
       )}
       <div className="space-y-2 p-4">
-        <h3 className="text-xl font-semibold">{text}
+        <h3 className="text-xl font-semibold">{text}</h3>
           {description && translation && (
-            <span className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+            <p className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
               <span>&gt;&gt;&gt;</span>
               <span className="font-medium">{translation}</span>
-            </span>
-          )}
-        </h3>
+            </p>
+          )}        
       </div>
     </article>
   );
