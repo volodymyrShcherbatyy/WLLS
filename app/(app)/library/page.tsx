@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma";
 export default async function LibraryPage() {
   const session = await getAuthSession();
   const now = new Date();
+  const userWordProgress = (prisma as typeof prisma & { userWordProgress?: typeof prisma.progress }).userWordProgress;
 
-  const [globalItems, userItems] = await Promise.all([
-    prisma.progress.findMany({
+  const globalItemsPromise = prisma.progress.findMany({
       where: { userId: session!.user.id },
       include: {
         word: {
@@ -21,8 +21,10 @@ export default async function LibraryPage() {
         }
       },
       orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }]
-    }),
-    prisma.userWordProgress.findMany({
+    });
+
+  const userItemsPromise = userWordProgress
+    ? userWordProgress.findMany({
       where: { userId: session!.user.id },
       include: {
         userWord: {
@@ -37,7 +39,9 @@ export default async function LibraryPage() {
       },
       orderBy: [{ nextReviewAt: "asc" }, { masteryLevel: "asc" }]
     })
-  ]);
+    : Promise.resolve([]);
+
+  const [globalItems, userItems] = await Promise.all([globalItemsPromise, userItemsPromise]);
 
   const items = [
     ...globalItems.map((item) => ({
