@@ -15,7 +15,7 @@ export default async function LearnPage() {
             <ImageWordCard
               text={word.text}
               imageUrl={word.imageUrl}
-              description={`${word.text}`}
+              description={`${}`}
               translation={word.translationsFrom[0]?.translatedWord.text ?? "-"}
             />
           </div>
