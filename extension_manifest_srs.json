@@ -5,6 +5,7 @@
     "prisma/seed.ts",
     "prisma/migrations/20260217010000_add_srs_fields/migration.sql",
     "lib/learning.ts",
+    "lib/srs.ts",
     "app/api/tests/submit/route.ts",
     "app/api/library/route.ts",
     "app/api/progress/route.ts",
@@ -39,7 +40,7 @@
   },
   "apiUpdates": {
     "route": "POST /api/tests/submit",
-    "srs": "SM-2 Lite update performed in transaction",
+    "srs": "SM-2 Lite update performed in transaction via reusable scheduler helper (lib/srs.ts)",
     "qualityMapping": {
       "correct": 5,
       "wrong": 2
