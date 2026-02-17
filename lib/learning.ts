@@ -51,6 +51,18 @@ function getReviewDate(progress?: LearningWord["progress"][number]) {
 }
 
 export async function getPriorityWords(userId: string, batchSize = 10): Promise<LearningWord[]> {
+  const userWordDelegate = (prisma as typeof prisma & {
+    userWord?: {
+      findMany: (args: unknown) => Promise<unknown[]>;
+    };
+  }).userWord;
+
+  const customListUserWordDelegate = (prisma as typeof prisma & {
+    customListUserWord?: {
+      findMany: (args: unknown) => Promise<Array<{ userWordId: string }>>;
+    };
+  }).customListUserWord;
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { nativeLanguageId: true, targetLanguageId: true }
@@ -93,7 +105,7 @@ export async function getPriorityWords(userId: string, batchSize = 10): Promise<
         }
       }
     }),
-    prisma.userWord.findMany({
+    userWordDelegate?.findMany({
       where: {
         userId,
         languageId: user.targetLanguageId,
@@ -117,7 +129,7 @@ export async function getPriorityWords(userId: string, batchSize = 10): Promise<
           }
         }
       }
-    }),
+    }) ?? Promise.resolve([]),
     prisma.customListWord.findMany({
       where: {
         list: {
@@ -128,7 +140,7 @@ export async function getPriorityWords(userId: string, batchSize = 10): Promise<
         wordId: true
       }
     }),
-    prisma.customListUserWord.findMany({
+    customListUserWordDelegate?.findMany({
       where: {
         list: {
           userId
@@ -137,7 +149,7 @@ export async function getPriorityWords(userId: string, batchSize = 10): Promise<
       select: {
         userWordId: true
       }
-    })
+    }) ?? Promise.resolve([])
   ]);
 
   const formattedGlobalWords: LearningWord[] = globalWords.map((word) => ({
